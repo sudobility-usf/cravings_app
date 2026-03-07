@@ -98,7 +98,7 @@ Uses `@sudobility/building_blocks` for:
 - **cravings_types** — Shared type definitions; imported transitively via cravings_client
 - **cravings_client** — API client SDK with TanStack Query hooks; provides data fetching layer
 - **cravings_lib** — Business logic library with `useHistoriesManager` hook; primary integration point for this app
-- **cravings_api** — Backend server that this app communicates with (watch the port mismatch!)
+- **cravings_api** — Backend server that this app communicates with (both default to port 8022)
 - **cravings_app_rn** — React Native counterpart of this web app; shares cravings_client, cravings_lib, and cravings_types
 
 Uses `@sudobility/building_blocks` for shared shell components (TopBar, LoginPage, SettingsPage, SudobilityAppWithFirebaseAuth).
@@ -121,10 +121,3 @@ Uses `@sudobility/building_blocks` for shared shell components (TopBar, LoginPag
 - Firebase configuration requires all `VITE_FIREBASE_*` environment variables to be set; missing any will break authentication
 - `@sudobility/building_blocks` provides shared UI components -- check there before creating duplicate components
 
-## Testing
-
-- Run type checking: `bun run typecheck`
-- There is no test suite currently -- the project relies on TypeScript type checking and manual testing
-- Linting: `bun run lint`
-- Format checking: `bun run format`
-- Full verification: `bun run verify` (runs typecheck + lint + format:check)
