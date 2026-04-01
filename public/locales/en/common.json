@@ -7,6 +7,7 @@
     "home": "Home",
     "docs": "Documentation",
     "histories": "Histories",
+    "search": "Search",
     "settings": "Settings",
     "sitemap": "Sitemap",
     "login": "Log In",
@@ -17,6 +18,7 @@
     "home": "Home",
     "docs": "Documentation",
     "histories": "Histories",
+    "search": "Search",
     "settings": "Settings",
     "sitemap": "Sitemap",
     "login": "Log In",
@@ -51,6 +53,18 @@
     "yourTotal": "Your Total",
     "globalTotal": "Global Total",
     "percentage": "Your Share"
+  },
+  "search": {
+    "title": "Search Restaurants",
+    "location": "Location",
+    "locationPlaceholder": "e.g. San Francisco",
+    "dish": "Dish",
+    "dishPlaceholder": "e.g. tacos",
+    "button": "Search",
+    "empty": "Enter a location and dish to find restaurants.",
+    "noResults": "No restaurants found. Try a different location or dish.",
+    "retry": "Retry",
+    "distance": "Distance"
   },
   "sitemap": {
     "languages": "Languages",

@@ -7,7 +7,12 @@ import {
 } from '@sudobility/building_blocks';
 import { AuthAction } from '@sudobility/auth-components';
 import type { ComponentType } from 'react';
-import { DocumentTextIcon, ClockIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
+import {
+  DocumentTextIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { useLocalizedNavigate } from '../../hooks/useLocalizedNavigate';
 import { CONSTANTS, SUPPORTED_LANGUAGES, isLanguageSupported } from '../../config/constants';
 import LocalizedLink from './LocalizedLink';
@@ -75,6 +80,12 @@ export function useTopBarConfig(): TopBarConfig {
         label: t('nav.histories'),
         icon: ClockIcon,
         href: '/histories',
+      },
+      {
+        id: 'search',
+        label: t('nav.search'),
+        icon: MagnifyingGlassIcon,
+        href: '/search',
       },
       {
         id: 'settings',
