@@ -13,6 +13,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const DocsPage = lazy(() => import('./pages/DocsPage'));
 const HistoriesPage = lazy(() => import('./pages/HistoriesPage'));
 const HistoryDetailPage = lazy(() => import('./pages/HistoryDetailPage'));
+const SearchPage = lazy(() => import('./pages/SearchPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const SitemapPage = lazy(() => import('./pages/SitemapPage'));
 const LanguageRedirect = lazy(() => import('./components/layout/LanguageRedirect'));
@@ -43,7 +44,13 @@ function PerformancePanelComponent() {
   if (import.meta.env.VITE_SHOW_PERFORMANCE_MONITOR !== 'true') {
     return null;
   }
-  return <PerformancePanel enabled={true} position="bottom-right" apiPatterns={PERFORMANCE_API_PATTERNS} />;
+  return (
+    <PerformancePanel
+      enabled={true}
+      position="bottom-right"
+      apiPatterns={PERFORMANCE_API_PATTERNS}
+    />
+  );
 }
 
 function AppRoutes() {
@@ -82,6 +89,7 @@ function AppRoutes() {
                   </ErrorBoundary>
                 }
               />
+              <Route path="search" element={<SearchPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="sitemap" element={<SitemapPage />} />
               <Route path="*" element={<Navigate to="." replace />} />

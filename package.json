@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "bun run process:static && vite",
     "build": "bun run process:static && tsc -b && vite build",
-    "process:static": "tsx scripts/process-static-files.ts",
+    "process:static": "bun scripts/process-static-files.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",

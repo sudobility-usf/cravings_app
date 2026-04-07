@@ -6,7 +6,8 @@
     "settings": "Settings",
     "sitemap": "Sitemap",
     "login": "Log In",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "search": "Search"
   },
   "home": {
     "title": "Starter App",
@@ -77,5 +78,17 @@
   "resetEmailSentDesc": "Check your inbox for the password reset link.",
   "passwordMismatch": "Passwords do not match",
   "passwordTooShort": "Password must be at least 6 characters",
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "search": {
+    "title": "Search Restaurants",
+    "location": "Location",
+    "locationPlaceholder": "e.g. San Francisco",
+    "dish": "Dish",
+    "dishPlaceholder": "e.g. tacos",
+    "button": "Search",
+    "empty": "Enter a location and dish to find restaurants.",
+    "noResults": "No restaurants found. Try a different location or dish.",
+    "retry": "Retry",
+    "distance": "Distance"
+  }
 }
