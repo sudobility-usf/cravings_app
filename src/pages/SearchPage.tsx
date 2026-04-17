@@ -171,6 +171,9 @@ export default function SearchPage() {
                     {restaurant.distance}
                   </span>
                 </div>
+                {restaurant.summary && (
+                  <p className="text-sm text-theme-text-secondary mt-2">{restaurant.summary}</p>
+                )}
               </div>
             ))}
             </div>
