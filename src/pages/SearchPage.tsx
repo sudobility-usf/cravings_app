@@ -1,14 +1,99 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApi } from '@sudobility/building_blocks/firebase';
 import { useRestaurantSearchManager } from '@sudobility/cravings_lib';
 import type { Restaurant } from '@sudobility/cravings_client';
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import ScreenContainer from '../components/layout/ScreenContainer';
 
-/**
- * Page allowing users to search for restaurants by location and dish.
- * No authentication required — the search endpoint is public.
- */
+const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+
+interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+async function geocodeAddress(address: string): Promise<LatLng | null> {
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+  const data = (await res.json()) as { lat: string; lon: string }[];
+  if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  return null;
+}
+
+function MapPanner({ target }: { target: LatLng | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (map && target) map.panTo(target);
+  }, [map, target]);
+  return null;
+}
+
+function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
+  const [coords, setCoords] = useState<Record<string, LatLng>>({});
+  const [geocodeStatus, setGeocodeStatus] = useState<string>('');
+  const [activeMarker, setActiveMarker] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (restaurants.length === 0) return;
+    const newCoords: Record<string, LatLng> = {};
+    Promise.all(
+      restaurants.map(async r => {
+        const key = `${r.name}-${r.address}`;
+        const coord = await geocodeAddress(r.address);
+        if (coord) newCoords[key] = coord;
+      })
+    ).then(() => {
+      setCoords(newCoords);
+      setGeocodeStatus(`Pinned ${Object.keys(newCoords).length}/${restaurants.length} restaurants`);
+    });
+  }, [restaurants]);
+
+  const firstCoord = Object.values(coords)[0] ?? null;
+
+  return (
+    <>
+      <Map
+        style={{ width: '100%', height: '480px', borderRadius: '8px' }}
+        defaultCenter={{ lat: 37.7749, lng: -122.4194 }}
+        defaultZoom={13}
+        mapId="cravings-map"
+      >
+        <MapPanner target={firstCoord} />
+        {restaurants.map((restaurant: Restaurant) => {
+          const key = `${restaurant.name}-${restaurant.address}`;
+          const pos = coords[key];
+          if (!pos) return null;
+          return (
+            <AdvancedMarker
+              key={key}
+              position={pos}
+              onClick={() => setActiveMarker(activeMarker === key ? null : key)}
+            />
+          );
+        })}
+        {activeMarker &&
+          coords[activeMarker] &&
+          (() => {
+            const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
+            return r ? (
+              <InfoWindow
+                position={coords[activeMarker]}
+                onCloseClick={() => setActiveMarker(null)}
+              >
+                <div className="text-sm">
+                  <p className="font-semibold">{r.name}</p>
+                  <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
+                </div>
+              </InfoWindow>
+            ) : null;
+          })()}
+      </Map>
+      {geocodeStatus && <p className="text-xs text-theme-text-tertiary mt-1">{geocodeStatus}</p>}
+    </>
+  );
+}
+
 export default function SearchPage() {
   const { t } = useTranslation('common');
   const { networkClient, baseUrl } = useApi();
@@ -16,6 +101,7 @@ export default function SearchPage() {
   const [location, setLocation] = useState('');
   const [dish, setDish] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
 
   const { restaurants, isLoading, error, search } = useRestaurantSearchManager({
     baseUrl,
@@ -121,35 +207,70 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Results */}
+        {/* Empty states */}
         {!isLoading && submitted && restaurants.length === 0 && !error && (
           <p className="text-center text-theme-text-tertiary py-8">{t('search.noResults')}</p>
         )}
-
         {!isLoading && !submitted && !error && (
           <p className="text-center text-theme-text-tertiary py-8">{t('search.empty')}</p>
         )}
 
+        {/* View toggle + Results */}
         {restaurants.length > 0 && (
-          <div className="space-y-2" role="list" aria-label="Restaurant results">
-            {restaurants.map((restaurant: Restaurant, index: number) => (
-              <div
-                key={`${restaurant.name}-${restaurant.address}-${index}`}
-                className="p-4 rounded-lg border border-theme-border"
-                role="listitem"
+          <>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  viewMode === 'list'
+                    ? 'bg-blue-600 text-white'
+                    : 'border border-theme-border text-theme-text-secondary hover:bg-theme-bg-secondary'
+                }`}
               >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-semibold text-theme-text-primary">{restaurant.name}</p>
-                    <p className="text-sm text-theme-text-secondary mt-1">{restaurant.address}</p>
+                List
+              </button>
+              <button
+                onClick={() => setViewMode('map')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                  viewMode === 'map'
+                    ? 'bg-blue-600 text-white'
+                    : 'border border-theme-border text-theme-text-secondary hover:bg-theme-bg-secondary'
+                }`}
+              >
+                Map
+              </button>
+            </div>
+
+            {viewMode === 'list' && (
+              <div className="space-y-2" role="list" aria-label="Restaurant results">
+                {restaurants.map((restaurant: Restaurant, index: number) => (
+                  <div
+                    key={`${restaurant.name}-${restaurant.address}-${index}`}
+                    className="p-4 rounded-lg border border-theme-border"
+                    role="listitem"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-theme-text-primary">{restaurant.name}</p>
+                        <p className="text-sm text-theme-text-secondary mt-1">
+                          {restaurant.address}
+                        </p>
+                      </div>
+                      <span className="ml-4 text-sm font-medium text-blue-600 whitespace-nowrap">
+                        {restaurant.distance}
+                      </span>
+                    </div>
                   </div>
-                  <span className="ml-4 text-sm font-medium text-blue-600 whitespace-nowrap">
-                    {restaurant.distance}
-                  </span>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+
+            {viewMode === 'map' && (
+              <APIProvider apiKey={MAPS_API_KEY}>
+                <RestaurantMap restaurants={restaurants} />
+              </APIProvider>
+            )}
+          </>
         )}
       </div>
     </ScreenContainer>
