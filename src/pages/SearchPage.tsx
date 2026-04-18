@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useApi } from '@sudobility/building_blocks/firebase';
 import { useRestaurantSearchManager } from '@sudobility/cravings_lib';
 import type { Restaurant } from '@sudobility/cravings_client';
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  InfoWindow,
+  useMap,
+  useMapsLibrary,
+} from '@vis.gl/react-google-maps';
 import ScreenContainer from '../components/layout/ScreenContainer';
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
@@ -13,19 +20,27 @@ interface LatLng {
   lng: number;
 }
 
+const geocodeCache: Record<string, LatLng | null> = {};
+
 async function geocodeAddress(address: string): Promise<LatLng | null> {
+  if (address in geocodeCache) return geocodeCache[address];
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
   const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
   const data = (await res.json()) as { lat: string; lon: string }[];
-  if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
-  return null;
+  const result = data[0] ? { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) } : null;
+  geocodeCache[address] = result;
+  return result;
 }
 
-function MapPanner({ target }: { target: LatLng | null }) {
+function MapFitter({ coords }: { coords: LatLng[] }) {
   const map = useMap();
+  const coreLib = useMapsLibrary('core');
   useEffect(() => {
-    if (map && target) map.panTo(target);
-  }, [map, target]);
+    if (!map || !coreLib || coords.length === 0) return;
+    const bounds = new coreLib.LatLngBounds();
+    coords.forEach(c => bounds.extend(c));
+    map.fitBounds(bounds, 60);
+  }, [map, coreLib, coords]);
   return null;
 }
 
@@ -47,9 +62,9 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
       setCoords(newCoords);
       setGeocodeStatus(`Pinned ${Object.keys(newCoords).length}/${restaurants.length} restaurants`);
     });
-  }, [restaurants]);
+  }, [restaurants]);  // eslint-disable-line react-hooks/exhaustive-deps
 
-  const firstCoord = Object.values(coords)[0] ?? null;
+  const coordValues = Object.values(coords);
 
   return (
     <>
@@ -59,7 +74,7 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
         defaultZoom={13}
         mapId="cravings-map"
       >
-        <MapPanner target={firstCoord} />
+        <MapFitter coords={coordValues} />
         {restaurants.map((restaurant: Restaurant) => {
           const key = `${restaurant.name}-${restaurant.address}`;
           const pos = coords[key];
@@ -72,22 +87,20 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
             />
           );
         })}
-        {activeMarker &&
-          coords[activeMarker] &&
-          (() => {
-            const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
-            return r ? (
-              <InfoWindow
-                position={coords[activeMarker]}
-                onCloseClick={() => setActiveMarker(null)}
-              >
-                <div className="text-sm">
-                  <p className="font-semibold">{r.name}</p>
-                  <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
-                </div>
-              </InfoWindow>
-            ) : null;
-          })()}
+        {activeMarker && coords[activeMarker] && (() => {
+          const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
+          return r ? (
+            <InfoWindow
+              position={coords[activeMarker]}
+              onCloseClick={() => setActiveMarker(null)}
+            >
+              <div className="text-sm">
+                <p className="font-semibold">{r.name}</p>
+                <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
+              </div>
+            </InfoWindow>
+          ) : null;
+        })()}
       </Map>
       {geocodeStatus && <p className="text-xs text-theme-text-tertiary mt-1">{geocodeStatus}</p>}
     </>
@@ -100,14 +113,17 @@ export default function SearchPage() {
 
   const [location, setLocation] = useState('');
   const [dish, setDish] = useState('');
+  const [committedLocation, setCommittedLocation] = useState('');
+  const [committedDish, setCommittedDish] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
+  const [sortBy, setSortBy] = useState<'distance' | 'name'>('distance');
 
-  const { restaurants, isLoading, error, search } = useRestaurantSearchManager({
+  const { restaurants, isLoading, error } = useRestaurantSearchManager({
     baseUrl,
     networkClient,
-    location: submitted ? location.trim() : '',
-    dish: submitted ? dish.trim() : '',
+    location: committedLocation,
+    dish: committedDish,
     enabled: submitted,
   });
 
@@ -116,15 +132,20 @@ export default function SearchPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSearchDisabled) return;
+    setCommittedLocation(location.trim());
+    setCommittedDish(dish.trim());
     setSubmitted(true);
-    search();
   };
 
   const handleInputChange =
     (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
-      setSubmitted(false);
     };
+
+  const sortedRestaurants = [...restaurants].sort((a, b) => {
+    if (sortBy === 'name') return a.name.localeCompare(b.name);
+    return parseFloat(a.distance) - parseFloat(b.distance);
+  });
 
   return (
     <ScreenContainer>
@@ -190,7 +211,10 @@ export default function SearchPage() {
             className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm flex items-center justify-between"
           >
             <span>{error}</span>
-            <button onClick={() => search()} className="ml-4 underline hover:no-underline text-sm">
+            <button
+              onClick={() => window.location.reload()}
+              className="ml-4 underline hover:no-underline text-sm"
+            >
               {t('search.retry')}
             </button>
           </div>
@@ -215,10 +239,10 @@ export default function SearchPage() {
           <p className="text-center text-theme-text-tertiary py-8">{t('search.empty')}</p>
         )}
 
-        {/* View toggle + Results */}
+        {/* Controls + Results */}
         {restaurants.length > 0 && (
           <>
-            <div className="flex gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-4">
               <button
                 onClick={() => setViewMode('list')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${
@@ -239,11 +263,27 @@ export default function SearchPage() {
               >
                 Map
               </button>
+              {viewMode === 'list' && (
+                <>
+                  <button
+                    onClick={() => setSortBy('distance')}
+                    className={`px-3 py-1 text-sm rounded border ${sortBy === 'distance' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+                  >
+                    Sort by Distance
+                  </button>
+                  <button
+                    onClick={() => setSortBy('name')}
+                    className={`px-3 py-1 text-sm rounded border ${sortBy === 'name' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+                  >
+                    Sort by Name (A→Z)
+                  </button>
+                </>
+              )}
             </div>
 
             {viewMode === 'list' && (
               <div className="space-y-2" role="list" aria-label="Restaurant results">
-                {restaurants.map((restaurant: Restaurant, index: number) => (
+                {sortedRestaurants.map((restaurant: Restaurant, index: number) => (
                   <div
                     key={`${restaurant.name}-${restaurant.address}-${index}`}
                     className="p-4 rounded-lg border border-theme-border"
