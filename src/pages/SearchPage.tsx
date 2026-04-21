@@ -62,7 +62,7 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
       setCoords(newCoords);
       setGeocodeStatus(`Pinned ${Object.keys(newCoords).length}/${restaurants.length} restaurants`);
     });
-  }, [restaurants]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restaurants]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const coordValues = Object.values(coords);
 
@@ -87,20 +87,22 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
             />
           );
         })}
-        {activeMarker && coords[activeMarker] && (() => {
-          const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
-          return r ? (
-            <InfoWindow
-              position={coords[activeMarker]}
-              onCloseClick={() => setActiveMarker(null)}
-            >
-              <div className="text-sm">
-                <p className="font-semibold">{r.name}</p>
-                <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
-              </div>
-            </InfoWindow>
-          ) : null;
-        })()}
+        {activeMarker &&
+          coords[activeMarker] &&
+          (() => {
+            const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
+            return r ? (
+              <InfoWindow
+                position={coords[activeMarker]}
+                onCloseClick={() => setActiveMarker(null)}
+              >
+                <div className="text-sm">
+                  <p className="font-semibold">{r.name}</p>
+                  <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
+                </div>
+              </InfoWindow>
+            ) : null;
+          })()}
       </Map>
       {geocodeStatus && <p className="text-xs text-theme-text-tertiary mt-1">{geocodeStatus}</p>}
     </>
