@@ -15,13 +15,16 @@ export default function SearchPage() {
 
   const [location, setLocation] = useState('');
   const [dish, setDish] = useState('');
+  const [committedLocation, setCommittedLocation] = useState('');
+  const [committedDish, setCommittedDish] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [sortBy, setSortBy] = useState<'distance' | 'name'>('distance');
 
-  const { restaurants, isLoading, error, search } = useRestaurantSearchManager({
+  const { restaurants, isLoading, error, refetch } = useRestaurantSearchManager({
     baseUrl,
     networkClient,
-    location: submitted ? location.trim() : '',
-    dish: submitted ? dish.trim() : '',
+    location: committedLocation,
+    dish: committedDish,
     enabled: submitted,
   });
 
@@ -30,14 +33,15 @@ export default function SearchPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSearchDisabled) return;
+    setCommittedLocation(location.trim());
+    setCommittedDish(dish.trim());
     setSubmitted(true);
-    search();
+    refetch();
   };
 
   const handleInputChange =
     (setter: (val: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setter(e.target.value);
-      setSubmitted(false);
     };
 
   return (
@@ -104,7 +108,7 @@ export default function SearchPage() {
             className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm flex items-center justify-between"
           >
             <span>{error}</span>
-            <button onClick={() => search()} className="ml-4 underline hover:no-underline text-sm">
+            <button onClick={() => refetch()} className="ml-4 underline hover:no-underline text-sm">
               {t('search.retry')}
             </button>
           </div>
@@ -131,8 +135,28 @@ export default function SearchPage() {
         )}
 
         {restaurants.length > 0 && (
-          <div className="space-y-2" role="list" aria-label="Restaurant results">
-            {restaurants.map((restaurant: Restaurant, index: number) => (
+          <>
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={() => setSortBy('distance')}
+                className={`px-3 py-1 text-sm rounded border ${sortBy === 'distance' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+              >
+                Sort by Distance
+              </button>
+              <button
+                onClick={() => setSortBy('name')}
+                className={`px-3 py-1 text-sm rounded border ${sortBy === 'name' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+              >
+                Sort by Name (A→Z)
+              </button>
+            </div>
+            <div className="space-y-2" role="list" aria-label="Restaurant results">
+            {[...restaurants]
+              .sort((a, b) => {
+                if (sortBy === 'name') return a.name.localeCompare(b.name);
+                return parseFloat(a.distance) - parseFloat(b.distance);
+              })
+              .map((restaurant: Restaurant, index: number) => (
               <div
                 key={`${restaurant.name}-${restaurant.address}-${index}`}
                 className="p-4 rounded-lg border border-theme-border"
@@ -147,9 +171,13 @@ export default function SearchPage() {
                     {restaurant.distance}
                   </span>
                 </div>
+                {restaurant.summary && (
+                  <p className="text-sm text-theme-text-secondary mt-2">{restaurant.summary}</p>
+                )}
               </div>
             ))}
-          </div>
+            </div>
+          </>
         )}
       </div>
     </ScreenContainer>
