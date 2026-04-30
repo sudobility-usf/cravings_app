@@ -320,6 +320,9 @@ export default function SearchPage() {
                         {restaurant.distance}
                       </span>
                     </div>
+                    {restaurant.summary && (
+                      <p className="text-sm text-theme-text-secondary mt-2">{restaurant.summary}</p>
+                    )}
                     <div className="mt-3 flex justify-end">
                       <a
                         href={getMapsUrl(restaurant.address)}
