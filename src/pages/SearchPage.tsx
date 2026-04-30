@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useApi } from '@sudobility/building_blocks/firebase';
 import { useRestaurantSearchManager } from '@sudobility/cravings_lib';
-import type { Restaurant } from '@sudobility/cravings_client';
+import type { Restaurant as BaseRestaurant } from '@sudobility/cravings_client';
+
+type Restaurant = BaseRestaurant & { summary?: string };
 import {
   APIProvider,
   Map,
@@ -14,6 +16,9 @@ import {
 import ScreenContainer from '../components/layout/ScreenContainer';
 
 const MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+
+const getMapsUrl = (address: string) =>
+  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
 interface LatLng {
   lat: number;
@@ -62,7 +67,7 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
       setCoords(newCoords);
       setGeocodeStatus(`Pinned ${Object.keys(newCoords).length}/${restaurants.length} restaurants`);
     });
-  }, [restaurants]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restaurants]);
 
   const coordValues = Object.values(coords);
 
@@ -87,20 +92,30 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
             />
           );
         })}
-        {activeMarker && coords[activeMarker] && (() => {
-          const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
-          return r ? (
-            <InfoWindow
-              position={coords[activeMarker]}
-              onCloseClick={() => setActiveMarker(null)}
-            >
-              <div className="text-sm">
-                <p className="font-semibold">{r.name}</p>
-                <p className="text-theme-text-secondary mt-0.5">{r.address}</p>
-              </div>
-            </InfoWindow>
-          ) : null;
-        })()}
+        {activeMarker &&
+          coords[activeMarker] &&
+          (() => {
+            const r = restaurants.find(r => `${r.name}-${r.address}` === activeMarker);
+            return r ? (
+              <InfoWindow
+                position={coords[activeMarker]}
+                onCloseClick={() => setActiveMarker(null)}
+              >
+                <div className="text-sm">
+                  <p className="font-semibold">{r.name}</p>
+                  <p className="text-gray-500 mt-0.5">{r.address}</p>
+                  <a
+                    href={getMapsUrl(r.address)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-block text-blue-600 hover:underline text-xs font-medium"
+                  >
+                    Open in Google Maps
+                  </a>
+                </div>
+              </InfoWindow>
+            ) : null;
+          })()}
       </Map>
       {geocodeStatus && <p className="text-xs text-theme-text-tertiary mt-1">{geocodeStatus}</p>}
     </>
@@ -290,19 +305,34 @@ export default function SearchPage() {
                     role="listitem"
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <p className="font-semibold text-theme-text-primary">{restaurant.name}</p>
                         <p className="text-sm text-theme-text-secondary mt-1">
                           {restaurant.address}
                         </p>
+                        {restaurant.summary && (
+                          <p className="text-sm text-theme-text-tertiary mt-2 leading-relaxed">
+                            {restaurant.summary}
+                          </p>
+                        )}
                       </div>
-                      <span className="ml-4 text-sm font-medium text-blue-600 whitespace-nowrap">
+                      <span className="ml-4 text-sm font-medium text-blue-600 whitespace-nowrap shrink-0">
                         {restaurant.distance}
                       </span>
                     </div>
                     {restaurant.summary && (
                       <p className="text-sm text-theme-text-secondary mt-2">{restaurant.summary}</p>
                     )}
+                    <div className="mt-3 flex justify-end">
+                      <a
+                        href={getMapsUrl(restaurant.address)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1 text-sm border border-theme-border text-theme-text-secondary rounded hover:bg-theme-bg-secondary hover:text-theme-text-primary transition-colors"
+                      >
+                        Open in Google Maps
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
