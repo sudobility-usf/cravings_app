@@ -89,7 +89,18 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
               key={key}
               position={pos}
               onClick={() => setActiveMarker(activeMarker === key ? null : key)}
-            />
+            >
+              <div
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: '#f97316',
+                  border: '3px solid #ffffff',
+                  boxShadow: '0 2px 8px rgba(249,115,22,0.7)',
+                }}
+              />
+            </AdvancedMarker>
           );
         })}
         {activeMarker &&
@@ -121,6 +132,17 @@ function RestaurantMap({ restaurants }: { restaurants: Restaurant[] }) {
     </>
   );
 }
+
+const POPULAR_DISHES = [
+  { emoji: '🍕', label: 'Pizza' },
+  { emoji: '🍔', label: 'Burgers' },
+  { emoji: '🍣', label: 'Sushi' },
+  { emoji: '🌮', label: 'Tacos' },
+  { emoji: '🍜', label: 'Ramen' },
+  { emoji: '🍛', label: 'Curry' },
+  { emoji: '🥗', label: 'Salad' },
+  { emoji: '🥙', label: 'Shawarma' },
+];
 
 export default function SearchPage() {
   const { t } = useTranslation('common');
@@ -165,19 +187,19 @@ export default function SearchPage() {
   return (
     <ScreenContainer>
       <div className="container-app px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold text-theme-text-primary mb-6">{t('search.title')}</h1>
+        <h1 className="text-3xl font-black text-theme-text-primary mb-8 tracking-tight">{t('search.title')}</h1>
 
         {/* Search Form */}
         <form
           onSubmit={handleSubmit}
-          className="mb-6 p-4 rounded-lg border border-theme-border"
+          className="mb-8 p-5 rounded-xl bg-theme-bg-secondary border border-orange-500/30"
           aria-label={t('search.title')}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label
                 htmlFor="search-location"
-                className="block text-sm font-medium text-theme-text-secondary mb-1"
+                className="block text-xs font-bold text-orange-500 uppercase tracking-widest mb-1.5"
               >
                 {t('search.location')}
               </label>
@@ -187,14 +209,14 @@ export default function SearchPage() {
                 value={location}
                 onChange={handleInputChange(setLocation)}
                 placeholder={t('search.locationPlaceholder')}
-                className="w-full px-3 py-2 rounded-md border border-theme-border bg-theme-bg-primary text-theme-text-primary"
+                className="w-full px-4 py-3 rounded-lg border border-theme-border bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/20 transition-colors"
                 aria-required="true"
               />
             </div>
             <div>
               <label
                 htmlFor="search-dish"
-                className="block text-sm font-medium text-theme-text-secondary mb-1"
+                className="block text-xs font-bold text-orange-500 uppercase tracking-widest mb-1.5"
               >
                 {t('search.dish')}
               </label>
@@ -204,7 +226,7 @@ export default function SearchPage() {
                 value={dish}
                 onChange={handleInputChange(setDish)}
                 placeholder={t('search.dishPlaceholder')}
-                className="w-full px-3 py-2 rounded-md border border-theme-border bg-theme-bg-primary text-theme-text-primary"
+                className="w-full px-4 py-3 rounded-lg border border-theme-border bg-theme-bg-primary text-theme-text-primary focus:outline-none focus:border-orange-500/60 focus:ring-1 focus:ring-orange-500/20 transition-colors"
                 aria-required="true"
               />
             </div>
@@ -212,18 +234,42 @@ export default function SearchPage() {
           <button
             type="submit"
             disabled={isSearchDisabled || isLoading}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-5 w-full py-3 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-lg text-sm uppercase tracking-wider transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-busy={isLoading}
           >
             {isLoading ? t('common.loading') : t('search.button')}
           </button>
         </form>
 
+        {/* Popular dish chips */}
+        {!submitted && (
+          <div className="mb-8">
+            <p className="text-xs font-bold text-theme-text-tertiary uppercase tracking-widest mb-3">Popular</p>
+            <div className="flex flex-wrap gap-2">
+              {POPULAR_DISHES.map(({ emoji, label }) => (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setDish(label)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                    dish === label
+                      ? 'bg-orange-500/20 text-orange-400 border-orange-500/40 font-semibold'
+                      : 'border-theme-border text-theme-text-secondary hover:border-orange-500/40 hover:text-orange-400 bg-theme-bg-secondary'
+                  }`}
+                >
+                  <span>{emoji}</span>
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Error */}
         {error && (
           <div
             role="alert"
-            className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg text-sm flex items-center justify-between"
+            className="mb-4 p-3 bg-red-900/30 border border-red-800/40 text-red-400 rounded-lg text-sm flex items-center justify-between"
           >
             <span>{error}</span>
             <button
@@ -241,7 +287,7 @@ export default function SearchPage() {
             <div
               role="status"
               aria-label={t('common.loading')}
-              className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"
+              className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto"
             />
           </div>
         )}
@@ -257,12 +303,12 @@ export default function SearchPage() {
         {/* Controls + Results */}
         {restaurants.length > 0 && (
           <>
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-5">
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                className={`px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-orange-500 text-white'
                     : 'border border-theme-border text-theme-text-secondary hover:bg-theme-bg-secondary'
                 }`}
               >
@@ -270,9 +316,9 @@ export default function SearchPage() {
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                className={`px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-colors ${
                   viewMode === 'map'
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-orange-500 text-white'
                     : 'border border-theme-border text-theme-text-secondary hover:bg-theme-bg-secondary'
                 }`}
               >
@@ -282,13 +328,13 @@ export default function SearchPage() {
                 <>
                   <button
                     onClick={() => setSortBy('distance')}
-                    className={`px-3 py-1 text-sm rounded border ${sortBy === 'distance' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${sortBy === 'distance' ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' : 'border-theme-border text-theme-text-tertiary'}`}
                   >
                     Sort by Distance
                   </button>
                   <button
                     onClick={() => setSortBy('name')}
-                    className={`px-3 py-1 text-sm rounded border ${sortBy === 'name' ? 'bg-blue-600 text-white border-blue-600' : 'border-theme-border text-theme-text-secondary'}`}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors ${sortBy === 'name' ? 'bg-orange-500/20 text-orange-400 border-orange-500/40' : 'border-theme-border text-theme-text-tertiary'}`}
                   >
                     Sort by Name (A→Z)
                   </button>
@@ -301,12 +347,12 @@ export default function SearchPage() {
                 {sortedRestaurants.map((restaurant: Restaurant, index: number) => (
                   <div
                     key={`${restaurant.name}-${restaurant.address}-${index}`}
-                    className="p-4 rounded-lg border border-theme-border"
+                    className="p-4 rounded-xl bg-theme-bg-secondary border border-theme-border border-l-4 border-l-orange-500"
                     role="listitem"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-theme-text-primary">{restaurant.name}</p>
+                        <p className="font-bold text-theme-text-primary">{restaurant.name}</p>
                         <p className="text-sm text-theme-text-secondary mt-1">
                           {restaurant.address}
                         </p>
@@ -316,7 +362,7 @@ export default function SearchPage() {
                           </p>
                         )}
                       </div>
-                      <span className="ml-4 text-sm font-medium text-blue-600 whitespace-nowrap shrink-0">
+                      <span className="ml-4 bg-orange-500/15 text-orange-400 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap shrink-0">
                         {restaurant.distance}
                       </span>
                     </div>
@@ -325,7 +371,7 @@ export default function SearchPage() {
                         href={getMapsUrl(restaurant.address)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1 text-sm border border-theme-border text-theme-text-secondary rounded hover:bg-theme-bg-secondary hover:text-theme-text-primary transition-colors"
+                        className="px-3 py-1.5 text-xs font-semibold border border-theme-border text-theme-text-tertiary rounded-lg hover:bg-theme-bg-tertiary hover:text-orange-400 hover:border-orange-500/40 transition-colors"
                       >
                         Open in Google Maps
                       </a>

@@ -1,7 +1,7 @@
 {
   "app": {
-    "name": "Starter",
-    "tagline": "A template project demonstrating the Sudobility architecture pattern."
+    "name": "Cravings",
+    "tagline": "Find restaurants serving exactly what you're craving."
   },
   "breadcrumbs": {
     "home": "Home",
@@ -25,16 +25,16 @@
     "logout": "Log Out"
   },
   "home": {
-    "title": "Starter App",
-    "description": "This is a template project demonstrating the Sudobility architecture pattern. It shows how to build a full-stack application with shared types, a Hono API, TanStack Query hooks, Zustand stores, and a React web app.",
-    "viewDocs": "View Documentation",
-    "viewHistories": "View Histories",
-    "feature1Title": "Shared Types",
-    "feature1Desc": "TypeScript type definitions shared between frontend and backend for type safety across the stack.",
-    "feature2Title": "TanStack Query",
-    "feature2Desc": "Automatic caching, cache invalidation, and background refetching with TanStack Query hooks.",
-    "feature3Title": "Zustand Stores",
-    "feature3Desc": "Lightweight state management with Zustand for offline cache and business logic."
+    "title": "What are you craving?",
+    "description": "Find restaurants near you serving exactly what you're in the mood for. Enter a dish and a location — we'll handle the rest.",
+    "viewDocs": "Find Restaurants",
+    "viewHistories": "Search History",
+    "feature1Title": "Search by Dish",
+    "feature1Desc": "Tell us what you're craving and where you are. We'll find restaurants nearby serving it.",
+    "feature2Title": "Map View",
+    "feature2Desc": "See all results on an interactive map with clickable pins for every restaurant we find.",
+    "feature3Title": "Search History",
+    "feature3Desc": "Every search is saved so you can easily revisit past results and rediscover great spots."
   },
   "docs": {
     "title": "Documentation"

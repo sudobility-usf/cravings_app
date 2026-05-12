@@ -28,13 +28,6 @@ export default function ScreenContainer({ children }: ScreenContainerProps) {
   return (
     <AppPageLayout
       topBar={topBarConfig}
-      breadcrumbs={
-        !isHomePage
-          ? {
-              items: breadcrumbItems,
-            }
-          : undefined
-      }
       footer={footerConfig}
       page={{ maxWidth: 'full', contentPadding: 'none' }}
     >
