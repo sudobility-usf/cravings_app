@@ -150,8 +150,6 @@ export default function SearchPage() {
 
   const [location, setLocation] = useState('');
   const [dish, setDish] = useState('');
-  const [committedLocation, setCommittedLocation] = useState('');
-  const [committedDish, setCommittedDish] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [sortBy, setSortBy] = useState<'distance' | 'name'>('distance');
@@ -159,8 +157,8 @@ export default function SearchPage() {
   const { restaurants, isLoading, error } = useRestaurantSearchManager({
     baseUrl,
     networkClient,
-    location: committedLocation,
-    dish: committedDish,
+    location: submitted ? location.trim() : '',
+    dish: submitted ? dish.trim() : '',
     enabled: submitted,
   });
 
@@ -169,8 +167,6 @@ export default function SearchPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isSearchDisabled) return;
-    setCommittedLocation(location.trim());
-    setCommittedDish(dish.trim());
     setSubmitted(true);
   };
 
@@ -187,7 +183,9 @@ export default function SearchPage() {
   return (
     <ScreenContainer>
       <div className="container-app px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-black text-theme-text-primary mb-8 tracking-tight">{t('search.title')}</h1>
+        <h1 className="text-3xl font-black text-theme-text-primary mb-8 tracking-tight">
+          {t('search.title')}
+        </h1>
 
         {/* Search Form */}
         <form
@@ -244,7 +242,9 @@ export default function SearchPage() {
         {/* Popular dish chips */}
         {!submitted && (
           <div className="mb-8">
-            <p className="text-xs font-bold text-theme-text-tertiary uppercase tracking-widest mb-3">Popular</p>
+            <p className="text-xs font-bold text-theme-text-tertiary uppercase tracking-widest mb-3">
+              Popular
+            </p>
             <div className="flex flex-wrap gap-2">
               {POPULAR_DISHES.map(({ emoji, label }) => (
                 <button
