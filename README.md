@@ -89,7 +89,7 @@ cp .env.example .env
 Open two terminals:
 
 ```bash
-# Terminal 1 — API server (port 8022)
+# Terminal 1 — API server (port 8023)
 cd cravings_api && bun run dev
 
 # Terminal 2 — Web app (port 5129)
@@ -102,7 +102,7 @@ Open [http://localhost:5129](http://localhost:5129) in your browser.
 - The Cravings home page loads at http://localhost:5129
 - Entering a location and dish on the Search page returns a list of restaurant results
 - Toggling to Map view plots results as pins on the map
-- The API health check responds at http://localhost:8022/health
+- The API health check responds at http://localhost:8023/health
 
 **Run tests (cravings_api only):**
 
