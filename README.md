@@ -60,6 +60,16 @@ cd cravings_api && bun install
 cd ../cravings_app && bun install
 ```
 
+Set up the database:
+
+You will need a PostgreSQL database. Create one locally or use a hosted provider (e.g. [Railway](https://railway.app) or [Supabase](https://supabase.com)). Your connection string will look like:
+
+```
+postgres://user:password@host:5432/dbname
+```
+
+The database schema is created automatically on first server startup — no migrations needed.
+
 Set up environment variables:
 
 ```bash
