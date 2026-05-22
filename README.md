@@ -2,6 +2,13 @@
 
 AI-powered restaurant discovery app. Describe what you're craving in plain English and get back a ranked list of restaurant recommendations tailored to your mood.
 
+## Design References
+
+Sponsor-provided reference images that guided the UI direction:
+
+![Map view reference](docs/design-ref1.webp)
+![Restaurant browse reference](docs/design-ref2.webp)
+
 ## Team Members
 
 | Name | Role | Primary Contributions |
@@ -72,7 +79,7 @@ cp .env.example .env
 Open two terminals:
 
 ```bash
-# Terminal 1 — API server (port 8023)
+# Terminal 1 — API server (port 8022)
 cd cravings_api && bun run dev
 
 # Terminal 2 — Web app (port 5129)
@@ -85,7 +92,7 @@ Open [http://localhost:5129](http://localhost:5129) in your browser.
 - The Cravings home page loads at http://localhost:5129
 - Entering a location and dish on the Search page returns a list of restaurant results
 - Toggling to Map view plots results as pins on the map
-- The API health check responds at http://localhost:8023/health
+- The API health check responds at http://localhost:8022/health
 
 **Run tests (cravings_api only):**
 
